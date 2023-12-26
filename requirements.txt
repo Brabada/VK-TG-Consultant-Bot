@@ -2,3 +2,4 @@ python-telegram-bot==13.*
 environs=9.5.*
 google-cloud-dialogflow=2.26.*
 google_cloud_api_keys=0.5.*
+vk_api=11.9.9
