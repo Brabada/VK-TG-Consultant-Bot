@@ -29,6 +29,10 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
     Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence})
     Fulfillment text: {response.query_result.fulfillment_text}
     ''')
+
+    if response.query_result.intent.is_fallback:
+        return
+
     return response.query_result.fulfillment_text
 
 
@@ -41,16 +45,20 @@ def echo(event, vk_api):
 
 
 def answer(event, vk_api, dialogflow_vars):
-    return vk_api.messages.send(
-        user_id=event.user_id,
-        message=detect_intent_texts(
-            dialogflow_vars['project_id'],
-            event.user_id,
-            event.message,
-            dialogflow_vars['language_code'],
-        ),
-        random_id=random.randint(1, 1000)
+    message = detect_intent_texts(
+        dialogflow_vars['project_id'],
+        event.user_id,
+        event.message,
+        dialogflow_vars['language_code'],
     )
+    if message:
+        return vk_api.messages.send(
+            user_id=event.user_id,
+            message=message,
+            random_id=random.randint(1, 1000)
+        )
+    else:
+        return
 
 
 def vk_longpoll(vk_group_token, dialogflow_vars):
