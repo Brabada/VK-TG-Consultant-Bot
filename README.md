@@ -1,4 +1,4 @@
-# VK TELEGRAM Consultant Bots
+# VK/TG Consultant Bot
 
 ## Описание
 Данный проект создан, чтобы при помощи DialogFlow обучить ботов отвечать на сообщения в VK и Telegram, заменяя тем
