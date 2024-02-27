@@ -1,5 +1,5 @@
 import random
-
+import logging
 import vk_api as vk
 from environs import Env
 from google.cloud import dialogflow
@@ -14,7 +14,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
     session_client = dialogflow.SessionsClient()
 
     session = session_client.session_path(project_id, session_id)
-    print(f'Session path: {session}\n')
+    logging.debug(f'Session path: {session}\n')
 
     text_input = dialogflow.TextInput(text=texts, language_code=language_code)
     query_input = dialogflow.QueryInput(text=text_input)
@@ -25,10 +25,11 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
             "query_input": query_input,
         }
     )
-    print(f'''Query text: {response.query_result.query_text}
-    Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence})
-    Fulfillment text: {response.query_result.fulfillment_text}
-    ''')
+    logging.debug(
+        f'''Query text: {response.query_result.query_text}
+        Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence})
+        Fulfillment text: {response.query_result.fulfillment_text}'''
+    )
 
     if response.query_result.intent.is_fallback:
         return
@@ -73,6 +74,10 @@ def vk_longpoll(vk_group_token, dialogflow_vars):
 def main():
     env = Env()
     env.read_env()
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=env.str("LOGGING_LEVEL")
+    )
     vk_group_token = env.str('VK_GROUP_TOKEN')
     google_application_credentials_path = env.path('GOOGLE_APPLICATION_CREDENTIALS')
 
@@ -81,7 +86,11 @@ def main():
         'language_code': env.str('LANGUAGE_CODE'),
     }
 
-    vk_longpoll(vk_group_token, dialogflow_vars)
+    logging.warning('The VK Consultant Bot is running')
+    try:
+        vk_longpoll(vk_group_token, dialogflow_vars)
+    except Exception as err:
+        logging.exception(err)
 
 
 if __name__ == "__main__":

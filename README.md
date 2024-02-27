@@ -90,7 +90,7 @@ python3 start_vk_bot.py
 - `GOOGLE_APPLICATION_CREDENTIALS` - полный путь к _credentials.json_, который содержит API-ключ для DialogFlow
 - `GOOGLE_CLOUD_PROJECT` - ID проекта на DialogFlow
 - `LANGUAGE_CODE` - схема языка для DialogFlow
-
+- `LOGGING_LEVEL` - минимальный уровень отображения логов (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 
 ### Запуск start_tg_bot.py
 ```shell
