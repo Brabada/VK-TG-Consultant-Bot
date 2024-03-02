@@ -1,9 +1,26 @@
-import random
 import logging
+import random
+from logging.handlers import RotatingFileHandler
+
+import telegram
 import vk_api as vk
 from environs import Env
+from google.api_core.exceptions import InvalidArgument
 from google.cloud import dialogflow
 from vk_api.longpoll import VkLongPoll, VkEventType
+
+logger = logging.getLogger('DebugBotLogger')
+
+
+class LogTelegramHandler(logging.Handler):
+    def __init__(self, bot_token, chat_id):
+        super().__init__()
+        self.tg_bot = telegram.Bot(token=bot_token)
+        self.chat_id = chat_id
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
 
 
 def detect_intent_texts(project_id, session_id, texts, language_code):
@@ -53,13 +70,21 @@ def answer(event, vk_api, dialogflow_vars):
         dialogflow_vars['language_code'],
     )
     if message:
+        logger.debug(message)
         return vk_api.messages.send(
             user_id=event.user_id,
             message=message,
             random_id=random.randint(1, 1000)
         )
     else:
-        return
+        logger.debug(message)
+        message_not_defined = 'Я вас не понимаю...'
+        logger.debug(message_not_defined)
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=message_not_defined,
+            random_id=random.randint(1, 1000)
+        )
 
 
 def vk_longpoll(vk_group_token, dialogflow_vars):
@@ -74,10 +99,19 @@ def vk_longpoll(vk_group_token, dialogflow_vars):
 def main():
     env = Env()
     env.read_env()
-    logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=env.str("LOGGING_LEVEL")
+
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger.setLevel(level=env.str("LOGGING_LEVEL"))
+
+    logger_handler = RotatingFileHandler('start_vk_bot.log', maxBytes=200, backupCount=3)
+    logger.addHandler(logger_handler)
+
+    logger.addHandler(
+        LogTelegramHandler(
+            chat_id=env.str('TG_USER_ID_FOR_LOGS'),
+            bot_token=env.str('TG_LOG_BOT_TOKEN'))
     )
+
     vk_group_token = env.str('VK_GROUP_TOKEN')
     google_application_credentials_path = env.path('GOOGLE_APPLICATION_CREDENTIALS')
 
@@ -86,11 +120,15 @@ def main():
         'language_code': env.str('LANGUAGE_CODE'),
     }
 
-    logging.warning('The VK Consultant Bot is running')
-    try:
-        vk_longpoll(vk_group_token, dialogflow_vars)
-    except Exception as err:
-        logging.exception(err)
+    logger.warning('The VK Consultant Bot is running')
+    while True:
+        try:
+            vk_longpoll(vk_group_token, dialogflow_vars)
+        except InvalidArgument as err:
+            logger.error('Its possible that received message include sticker:')
+            logger.exception(err)
+        except Exception as err:
+            logger.exception(err)
 
 
 if __name__ == "__main__":

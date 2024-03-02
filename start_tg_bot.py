@@ -1,11 +1,25 @@
-import os
 import functools
 import logging
+from logging.handlers import RotatingFileHandler
 
+import telegram
 from environs import Env
+from google.api_core.exceptions import InvalidArgument
+from google.cloud import dialogflow
 from telegram import Update
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
-from google.cloud import dialogflow
+
+logger = logging.getLogger('DebugBotLogger')
+
+class LogTelegramHandler(logging.Handler):
+    def __init__(self, bot_token, chat_id):
+        super().__init__()
+        self.tg_bot = telegram.Bot(token=bot_token)
+        self.chat_id = chat_id
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
 
 
 def detect_intent_texts(project_id, session_id, texts, language_code):
@@ -53,6 +67,18 @@ def main():
 
     env = Env()
     env.read_env()
+
+    logger.setLevel(level=env.str("LOGGING_LEVEL"))
+
+    logger_handler = RotatingFileHandler('start_tg_bot.log', maxBytes=300, backupCount=3)
+    logger.addHandler(logger_handler)
+
+    logger.addHandler(
+        LogTelegramHandler(
+            chat_id=env.str('TG_USER_ID_FOR_LOGS'),
+            bot_token=env.str('TG_LOG_BOT_TOKEN'))
+    )
+
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=env.str("LOGGING_LEVEL"))
@@ -60,23 +86,25 @@ def main():
     google_application_credentials_path = env.path('GOOGLE_APPLICATION_CREDENTIALS')
     project_id = env.str('GOOGLE_CLOUD_PROJECT')
     language_code = env.str('LANGUAGE_CODE')
+    while True:
+        try:
+            updater = Updater(token=tg_bot_token, use_context=True)
+            dispatcher = updater.dispatcher
 
-    try:
-        updater = Updater(token=tg_bot_token, use_context=True)
-        dispatcher = updater.dispatcher
+            start_handler = CommandHandler('start', start)
+            dispatcher.add_handler(start_handler)
 
-        start_handler = CommandHandler('start', start)
-        dispatcher.add_handler(start_handler)
+            answer_handler = MessageHandler(
+                Filters.text & (~Filters.command),
+                functools.partial(answer, project_id=project_id, language_code=language_code)
+            )
+            dispatcher.add_handler(answer_handler)
 
-        answer_handler = MessageHandler(
-            Filters.text & (~Filters.command),
-            functools.partial(answer, project_id=project_id, language_code=language_code)
-        )
-        dispatcher.add_handler(answer_handler)
-
-        updater.start_polling()
-    except Exception as err:
-        logging.exception(err)
+            updater.start_polling()
+        except InvalidArgument as err:
+            logging.exception(err)
+        except Exception as err:
+            logging.exception(err)
 
 
 if __name__ == "__main__":
