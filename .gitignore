@@ -4,3 +4,4 @@
 *.json
 api_key.txt
 start_*
+.python-version
