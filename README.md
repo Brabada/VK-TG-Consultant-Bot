@@ -7,6 +7,8 @@
 Схема работы для VK и Telegram схожа. Бот принимает сообщение в чате, отправляет его по API в DialogFlow. Далее пересылает ответ
 от DialogFlow обратно в чат.
 
+![Как работает](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2RlbTBsYXB5MDlxaXp3MzNldWpmbm9ldDQxa2R4amN2Y3JobXdldyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nHeYlO0Ji7KOKwVgJe/giphy.gif)
+
 ## Состав
 - `start_vk_bot.py` - запускает бота для Telegram;
 - `start_tg_bot.py` - запускает бота для VK;
