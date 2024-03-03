@@ -64,46 +64,49 @@ def answer(update: Update, context: CallbackContext, project_id: str = '', langu
 
 
 def main():
-    logger.warning('The TG Consultant Bot is running')
 
     env = Env()
     env.read_env()
 
     # Initializing and config bot for debug messages
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger.setLevel(level=env.str("LOGGING_LEVEL"))
-    logger_handler = RotatingFileHandler('start_tg_bot.log', maxBytes=300, backupCount=3)
+
+    logger_handler = RotatingFileHandler('start_tg_bot.log', maxBytes=200, backupCount=3)
     logger.addHandler(logger_handler)
+
     logger.addHandler(
         LogTelegramHandler(
             chat_id=env.str('TG_USER_ID_FOR_LOGS'),
             bot_token=env.str('TG_LOG_BOT_TOKEN'))
     )
+    logger.warning('The TG Consultant Bot is running')
 
     # Initializing and config consultant bot
     tg_bot_token = env.str('TG_BOT_TOKEN')
     google_application_credentials_path = env.path('GOOGLE_APPLICATION_CREDENTIALS')
     project_id = env.str('GOOGLE_CLOUD_PROJECT')
     language_code = env.str('LANGUAGE_CODE')
-    while True:
-        try:
-            updater = Updater(token=tg_bot_token, use_context=True)
-            dispatcher = updater.dispatcher
 
-            start_handler = CommandHandler('start', start)
-            dispatcher.add_handler(start_handler)
+    try:
+        updater = Updater(token=tg_bot_token, use_context=True)
+        dispatcher = updater.dispatcher
 
-            answer_handler = MessageHandler(
-                Filters.text & (~Filters.command),
-                functools.partial(answer, project_id=project_id, language_code=language_code)
-            )
-            dispatcher.add_handler(answer_handler)
+        start_handler = CommandHandler('start', start)
+        dispatcher.add_handler(start_handler)
 
+        answer_handler = MessageHandler(
+            Filters.text & (~Filters.command),
+            functools.partial(answer, project_id=project_id, language_code=language_code)
+        )
+        dispatcher.add_handler(answer_handler)
+        while True:
             updater.start_polling()
-        except InvalidArgument as err:
-            logger.error('Its possible that received message include sticker:')
-            logger.exception(err)
-        except Exception as err:
-            logger.exception(err)
+    except InvalidArgument as err:
+        logger.error('Its possible that received message include sticker:')
+        logger.exception(err)
+    except Exception as err:
+        logger.exception(err)
 
 
 if __name__ == "__main__":
