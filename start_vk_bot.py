@@ -31,7 +31,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
     session_client = dialogflow.SessionsClient()
 
     session = session_client.session_path(project_id, session_id)
-    logging.debug(f'Session path: {session}\n')
+    logger.debug(f'Session path: {session}\n')
 
     text_input = dialogflow.TextInput(text=texts, language_code=language_code)
     query_input = dialogflow.QueryInput(text=text_input)
@@ -42,7 +42,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
             "query_input": query_input,
         }
     )
-    logging.debug(
+    logger.debug(
         f'''Query text: {response.query_result.query_text}
         Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence})
         Fulfillment text: {response.query_result.fulfillment_text}'''

@@ -11,6 +11,7 @@ from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandle
 
 logger = logging.getLogger('DebugBotLogger')
 
+
 class LogTelegramHandler(logging.Handler):
     def __init__(self, bot_token, chat_id):
         super().__init__()
@@ -31,7 +32,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
 
     session = session_client.session_path(project_id, session_id)
 
-    logging.debug(f'Session path: {session}\n')
+    logger.debug(f'Session path: {session}\n')
 
     text_input = dialogflow.TextInput(text=texts, language_code=language_code)
     query_input = dialogflow.QueryInput(text=text_input)
@@ -42,7 +43,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
             "query_input": query_input,
         }
     )
-    logging.debug(f'''Query text: {response.query_result.query_text}
+    logger.debug(f'''Query text: {response.query_result.query_text}
         Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence}
         Fulfillment text: {response.query_result.fulfillment_text}
     ''')
@@ -63,25 +64,22 @@ def answer(update: Update, context: CallbackContext, project_id: str = '', langu
 
 
 def main():
-    logging.warning('The TG Consultant Bot is running')
+    logger.warning('The TG Consultant Bot is running')
 
     env = Env()
     env.read_env()
 
+    # Initializing and config bot for debug messages
     logger.setLevel(level=env.str("LOGGING_LEVEL"))
-
     logger_handler = RotatingFileHandler('start_tg_bot.log', maxBytes=300, backupCount=3)
     logger.addHandler(logger_handler)
-
     logger.addHandler(
         LogTelegramHandler(
             chat_id=env.str('TG_USER_ID_FOR_LOGS'),
             bot_token=env.str('TG_LOG_BOT_TOKEN'))
     )
 
-    logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=env.str("LOGGING_LEVEL"))
+    # Initializing and config consultant bot
     tg_bot_token = env.str('TG_BOT_TOKEN')
     google_application_credentials_path = env.path('GOOGLE_APPLICATION_CREDENTIALS')
     project_id = env.str('GOOGLE_CLOUD_PROJECT')
@@ -102,9 +100,10 @@ def main():
 
             updater.start_polling()
         except InvalidArgument as err:
-            logging.exception(err)
+            logger.error('Its possible that received message include sticker:')
+            logger.exception(err)
         except Exception as err:
-            logging.exception(err)
+            logger.exception(err)
 
 
 if __name__ == "__main__":
