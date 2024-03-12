@@ -37,13 +37,6 @@ def answer(event, vk_api, dialogflow_vars):
         )
     else:
         logger.debug(message)
-        message_not_defined = 'Я вас не понимаю...'
-        logger.debug(message_not_defined)
-        vk_api.messages.send(
-            user_id=event.user_id,
-            message=message_not_defined,
-            random_id=random.randint(1, 1000)
-        )
 
 
 def longpolling_vk(vk_group_token, dialogflow_vars):
