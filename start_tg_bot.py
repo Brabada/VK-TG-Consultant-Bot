@@ -2,25 +2,15 @@ import functools
 import logging
 from logging.handlers import RotatingFileHandler
 
-import telegram
 from environs import Env
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import dialogflow
 from telegram import Update
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
 
+import log_handlers
+
 logger = logging.getLogger('DebugBotLogger')
-
-
-class LogTelegramHandler(logging.Handler):
-    def __init__(self, bot_token, chat_id):
-        super().__init__()
-        self.tg_bot = telegram.Bot(token=bot_token)
-        self.chat_id = chat_id
-
-    def emit(self, record):
-        log_entry = self.format(record)
-        self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
 
 
 def detect_intent_texts(project_id, session_id, texts, language_code):
@@ -76,7 +66,7 @@ def main():
     logger.addHandler(logger_handler)
 
     logger.addHandler(
-        LogTelegramHandler(
+        log_handlers.LogTelegramHandler(
             chat_id=env.str('TG_USER_ID_FOR_LOGS'),
             bot_token=env.str('TG_LOG_BOT_TOKEN'))
     )

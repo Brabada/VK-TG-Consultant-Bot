@@ -5,3 +5,4 @@
 api_key.txt
 start_*
 .python-version
+__pycache__/*
