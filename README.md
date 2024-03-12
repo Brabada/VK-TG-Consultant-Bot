@@ -93,6 +93,8 @@ python3 start_vk_bot.py
 - `GOOGLE_CLOUD_PROJECT` - ID проекта на DialogFlow
 - `LANGUAGE_CODE` - схема языка для DialogFlow
 - `LOGGING_LEVEL` - минимальный уровень отображения логов (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- `QUESTIONS_FILE_PATH` - путь до json-файла с вопросами и ответами для намерений (intent). Принимает относительные и 
+абсолютные пути.
 
 ### Запуск start_tg_bot.py
 ```shell
