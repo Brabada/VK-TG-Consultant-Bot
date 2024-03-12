@@ -26,7 +26,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
         }
     )
     logger.debug(f'''Query text: {response.query_result.query_text}
-        Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence}
+        Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence})
         Fulfillment text: {response.query_result.fulfillment_text}
     ''')
     return response.query_result.fulfillment_text

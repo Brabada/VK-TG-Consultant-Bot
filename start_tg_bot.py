@@ -64,8 +64,7 @@ def main():
             functools.partial(answer, project_id=project_id, language_code=language_code)
         )
         dispatcher.add_handler(answer_handler)
-        while True:
-            updater.start_polling()
+        updater.start_polling()
     except InvalidArgument as err:
         logger.error('Its possible that received message include sticker:')
         logger.exception(err)
