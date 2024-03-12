@@ -13,14 +13,6 @@ import log_handlers
 logger = logging.getLogger('DebugBotLogger')
 
 
-def echo(event, vk_api):
-    return vk_api.messages.send(
-        user_id=event.user_id,
-        message=event.message,
-        random_id=random.randint(0, 1000)
-    )
-
-
 def answer(event, vk_api, dialogflow_vars):
     message = intentions_api.detect_intent_texts(
         dialogflow_vars['project_id'],

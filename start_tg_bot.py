@@ -17,10 +17,6 @@ def start(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text='Здравствуйте!')
 
 
-def echo(update: Update, context: CallbackContext, project_id: str = '', language_code: str = ''):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
-
-
 def answer(update: Update, context: CallbackContext, project_id: str = '', language_code: str = ''):
     answer = intentions_api.detect_intent_texts(
         project_id,
