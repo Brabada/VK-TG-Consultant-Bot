@@ -25,8 +25,14 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
             "query_input": query_input,
         }
     )
+
     logger.debug(f'''Query text: {response.query_result.query_text}
         Detect intent: {response.query_result.intent.display_name} (confidence: {response.query_result.intent_detection_confidence})
         Fulfillment text: {response.query_result.fulfillment_text}
     ''')
-    return response.query_result.fulfillment_text
+
+    if response.query_result.intent.is_fallback:
+        logger.debug(f'''This is fallback message!''')
+        return
+    else:
+        return response.query_result.fulfillment_text
