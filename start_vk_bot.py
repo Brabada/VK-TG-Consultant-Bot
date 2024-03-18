@@ -31,7 +31,7 @@ def answer(event, vk_api, dialogflow_vars):
         logger.debug(message)
 
 
-def longpolling_vk(vk_group_token, dialogflow_vars):
+def start_vk_longpolling(vk_group_token, dialogflow_vars):
     vk_session = vk.VkApi(token=vk_group_token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
@@ -67,7 +67,7 @@ def main():
     logger.warning('The VK Consultant Bot is running')
     while True:
         try:
-            longpolling_vk(vk_group_token, dialogflow_vars)
+            start_vk_longpolling(vk_group_token, dialogflow_vars)
         except InvalidArgument as err:
             logger.error('Its possible that received message include sticker:')
             logger.exception(err)
